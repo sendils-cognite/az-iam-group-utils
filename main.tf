@@ -13,6 +13,10 @@ resource "azuread_group" "cdf" {
   security_enabled = true
   mail_enabled     = false
   owners           = [data.azuread_client_config.current.object_id]
+
+  // State is per-project, so it cannot see a group of this name created from
+  // another project. Fail loudly rather than silently making a second one.
+  prevent_duplicate_names = true
 }
 
 resource "azuread_application" "cdf" {
@@ -20,6 +24,8 @@ resource "azuread_application" "cdf" {
   description      = "Service principal used for CDF authentication."
   sign_in_audience = "AzureADMyOrg"
   owners           = [data.azuread_client_config.current.object_id]
+
+  prevent_duplicate_names = true
 }
 
 resource "azuread_service_principal" "cdf" {
