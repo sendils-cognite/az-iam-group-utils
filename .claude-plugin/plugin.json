@@ -1,0 +1,8 @@
+{
+  "name": "cdf-auth-bootstrap",
+  "description": "Create an Entra ID security group, app registration and client secret for CDF authentication, and drop a ready-to-use .env in the current project",
+  "version": "1.0.0",
+  "author": {
+    "name": "Sendil Sadasivam"
+  }
+}
