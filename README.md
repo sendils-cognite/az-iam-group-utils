@@ -47,8 +47,15 @@ Toolkit project.
 
 ### Finishing the setup in CDF
 
-This tool is Azure-only. In CDF, create a group whose `sourceId` is the `ENTRA_GROUP_ID` value
-(also available as `terraform output group_object_id`) and give it the capabilities you need.
+The Azure identity is useless until CDF trusts it. Create the matching CDF group:
+
+```bash
+scripts/cdf-group-setup.sh
+```
+
+It reads the `.env` produced above (never the secret) and creates a CDF group whose `sourceId` is
+the Entra group's object ID, with the capabilities in `cdf-capabilities.json`. It runs as your own
+`az` user, since the new service principal cannot yet create groups itself.
 
 ### Verify the credentials work
 

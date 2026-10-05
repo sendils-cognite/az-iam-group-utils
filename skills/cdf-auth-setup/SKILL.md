@@ -81,14 +81,44 @@ user whether to:
 - reuse the existing objects, which this tool does not manage — they would import them with
   `terraform -chdir=.cdf-auth import` or get the credentials from whoever created them.
 
+## Step 3b — grant access in CDF
+
+The Azure identity alone grants nothing. Immediately after a successful run, offer to create the
+matching CDF group:
+
+```bash
+scripts/cdf-group-setup.sh
+```
+
+It reads `CDF_CLUSTER`, `CDF_PROJECT` and `ENTRA_GROUP_ID` from the generated `.env` — never the
+secret — and creates a CDF group linked to the Entra group, with the capabilities in
+`cdf-capabilities.json` (`groupsAcl` full, `projectsAcl` LIST/READ, `datasetsAcl` READ/WRITE).
+Pass `--dry-run` to show the payload first, `--group-name` to override the default
+`<project>-admin`, `--capabilities <file>` for a different set.
+
+It runs as the signed-in user, because a brand-new service principal has no `groupsAcl:CREATE`
+and cannot create its own group. The user must be a CDF admin in that project.
+
+Two failures to expect and how to respond:
+
+- **`AADSTS65001`** on the first run in a tenant — the Azure CLI app is not consented for the CDF
+  cluster. The script prints the exact `az login --scope …` command; relay it verbatim and have
+  the user run it, then re-run. Do not run `az login` for them; it needs a browser.
+- **no `groupsAcl:CREATE`** — the user is not a CDF admin there. They need an admin to run the
+  script or grant the capability. Do not try to work around it.
+
+The script is idempotent: if a CDF group already points at that Entra group it exits cleanly. If a
+group of the same *name* exists with a different `sourceId` it stops and asks for `--group-name`.
+
 ## Step 4 — report
 
 The script prints the client ID, group object ID, `.env` path, and runs verification against
 Microsoft Graph. Relay:
 
 1. What was created, and that `.env` is at the project root with mode `0600`.
-2. **The CDF-side step is still outstanding**: the user must create a group in CDF with
-   `sourceId = <group object id>` plus the capabilities they need. Nothing works until they do.
+2. Whether the CDF group was created (Step 3b). If it was not — because of the consent error or
+   missing admin rights — say so plainly: the credentials exist but grant no access yet, and every
+   CDF API call will return 401 until a group with that `sourceId` exists.
 3. That `.cdf-auth/terraform.tfstate` contains the secret in plaintext. Both it and `.env` are
    added to `.gitignore` automatically — confirm that happened.
 

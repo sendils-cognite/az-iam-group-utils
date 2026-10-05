@@ -1,0 +1,20 @@
+[
+  {
+    "groupsAcl": {
+      "actions": ["LIST", "READ", "CREATE", "UPDATE", "DELETE"],
+      "scope": { "all": {} }
+    }
+  },
+  {
+    "projectsAcl": {
+      "actions": ["LIST", "READ"],
+      "scope": { "all": {} }
+    }
+  },
+  {
+    "datasetsAcl": {
+      "actions": ["READ", "WRITE"],
+      "scope": { "all": {} }
+    }
+  }
+]

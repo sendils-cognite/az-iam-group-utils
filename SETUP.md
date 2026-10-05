@@ -180,8 +180,30 @@ Azure now has the identity, but CDF does not yet trust it. The script prints an 
 Entra group id    bd3c8c1b-9916-4659-b83c-c0378bfbee59
 ```
 
-In CDF, create a group whose **Source ID** is that value, and give it the capabilities you need.
-**Nothing works until you do this** — you will get a token, but every API call returns 401.
+**Nothing works until this is done** — you will get a token, but every API call returns 401.
+
+Run the second script, from the same project folder:
+
+```bash
+~/az-iam-group-utils/scripts/cdf-group-setup.sh
+```
+
+It reads `CDF_CLUSTER`, `CDF_PROJECT` and `ENTRA_GROUP_ID` from the `.env` you just generated —
+it never touches the client secret — and creates a CDF group linked to that Entra group.
+
+Because a brand-new service principal has no rights yet, it cannot create its own group. The
+script therefore acts as **you**, using a CDF token from your `az login` session, so you must
+already be a CDF admin in the project.
+
+The first run in a tenant usually fails with `AADSTS65001`: the Azure CLI app has not been
+consented for your CDF cluster. The script prints the exact one-time command to fix it.
+
+Capabilities granted come from `cdf-capabilities.json` in the repo — `groupsAcl` (full),
+`projectsAcl` (LIST/READ) and `datasetsAcl` (READ/WRITE). Edit that file and re-run to change
+them.
+
+If you would rather do it by hand: in CDF, **Admin → Access management → Groups → Create group**,
+set **Members → Externally managed** and put the Entra group's object ID in **Source ID**.
 
 To check the credentials themselves work:
 
