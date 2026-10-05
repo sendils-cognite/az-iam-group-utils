@@ -11,7 +11,7 @@ Give it an Entra ID (Azure AD) **tenant ID**; it creates:
 …and writes everything to a `.env` (mode `0600`) ready for CDF service-principal auth.
 
 **New to this / nothing installed?** Follow [SETUP.md](SETUP.md) — a step-by-step macOS guide
-starting from an empty machine.
+starting from an empty machine. Need a tenant of your own first? See [NEW_TENANT.md](NEW_TENANT.md).
 
 ## Prerequisites
 

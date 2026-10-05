@@ -6,3 +6,6 @@
 crash.log
 *.tfvars
 !*.tfvars.example
+
+# added by cdf-auth-bootstrap
+.cdf-auth/

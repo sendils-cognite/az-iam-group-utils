@@ -15,6 +15,7 @@ You need three things that this tool cannot create for you:
 | What | How to get it |
 |---|---|
 | An Azure account that can create groups and app registrations in your Entra ID tenant | Ask your Azure admin for **Application Developer** + **Groups Administrator**, or **Cloud Application Administrator**. Without this you get `403 Authorization_RequestDenied`. |
+| A tenant to create them in | Usually your organisation's. To make your own sandbox tenant instead, see [NEW_TENANT.md](NEW_TENANT.md). |
 | Your **CDF cluster** | The host in your Fusion URL — in `https://bluefield.fusion.cognite.com/my-project`, the cluster is `bluefield`. |
 | Your **CDF project** name | The path segment — in the URL above, `my-project`. |
 | Access to this repository | It is private. Ask the owner to add you. |
