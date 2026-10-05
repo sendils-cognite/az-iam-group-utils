@@ -195,8 +195,27 @@ Because a brand-new service principal has no rights yet, it cannot create its ow
 script therefore acts as **you**, using a CDF token from your `az login` session, so you must
 already be a CDF admin in the project.
 
-The first run in a tenant usually fails with `AADSTS65001`: the Azure CLI app has not been
-consented for your CDF cluster. The script prints the exact one-time command to fix it.
+**Getting the admin token.** The script tries three sources, in order:
+
+1. `CDF_TOKEN` — a token you supply.
+2. `CDF_ADMIN_CLIENT_ID` + `CDF_ADMIN_CLIENT_SECRET` — an existing admin service principal.
+3. Your `az login` session.
+
+Option 3 is the most convenient but does not work in every tenant. If `az` fails with
+`AADSTS65001`, the Azure CLI app just needs a one-time consent and the script prints the exact
+command. If it fails with **`AADSTS650057`**, the CDF application in your tenant does not permit
+the Azure CLI as a client at all — consent cannot fix that, so use option 1 or 2:
+
+```bash
+# Option 1 — token from Fusion DevTools (Network tab, any request's Authorization header)
+CDF_TOKEN=<token> ~/az-iam-group-utils/scripts/cdf-group-setup.sh
+
+# Option 2 — an existing admin service principal
+CDF_ADMIN_CLIENT_ID=<id> CDF_ADMIN_CLIENT_SECRET=<secret> ~/az-iam-group-utils/scripts/cdf-group-setup.sh
+```
+
+Either way the credential needs `groupsAcl:CREATE` in the project; the script checks before
+changing anything.
 
 Capabilities granted come from `cdf-capabilities.json` in the repo — `groupsAcl` (full),
 `projectsAcl` (LIST/READ) and `datasetsAcl` (READ/WRITE). Edit that file and re-run to change

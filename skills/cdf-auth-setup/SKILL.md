@@ -104,6 +104,10 @@ Two failures to expect and how to respond:
 - **`AADSTS65001`** on the first run in a tenant — the Azure CLI app is not consented for the CDF
   cluster. The script prints the exact `az login --scope …` command; relay it verbatim and have
   the user run it, then re-run. Do not run `az login` for them; it needs a browser.
+- **`AADSTS650057`** — the CDF application in that tenant does not list the Azure CLI as a
+  permitted client. Consent cannot fix this; stop suggesting `az login`. Offer instead
+  `CDF_TOKEN=<token>` (from Fusion DevTools) or
+  `CDF_ADMIN_CLIENT_ID`/`CDF_ADMIN_CLIENT_SECRET` for an existing admin service principal.
 - **no `groupsAcl:CREATE`** — the user is not a CDF admin there. They need an admin to run the
   script or grant the capability. Do not try to work around it.
 

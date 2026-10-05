@@ -6,16 +6,22 @@ import sys
 GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
 
 
+_RAW = ""
+
+
 def _load():
+    global _RAW
+    _RAW = sys.stdin.read()
     try:
-        return json.load(sys.stdin)
+        return json.loads(_RAW)
     except json.JSONDecodeError:
         return None
 
 
 def error_message(doc, fallback="unexpected response"):
     if not isinstance(doc, dict):
-        return fallback
+        snippet = " ".join(_RAW.split())[:200]
+        return f"{fallback}: {snippet}" if snippet else fallback
     err = doc.get("error")
     if isinstance(err, dict):
         return err.get("message") or json.dumps(err)[:300]
