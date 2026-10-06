@@ -73,10 +73,10 @@ AUDIENCE="$AUTH_BASE"
 . "$MODULE_DIR/scripts/cdf_auth.sh"
 resolve_token || die "no usable token for $AUTH_BASE.
 
-       Organization APIs need a token for auth.cognite.com — a cluster-scoped service
-       principal token will not work. Copy one from Fusion:
+       Organization APIs need a token from your organization's authorization server; a
+       cluster-scoped service principal token will not work. Copy one from Fusion:
          sign in at https://$ORG.fusion.cognite.com, open DevTools, Network tab, pick a
-         request to auth.cognite.com and copy the value after 'Bearer '. Then:
+         request to the auth host and copy the value after 'Bearer '. Then:
            (umask 077; pbpaste > ~/.cdf-token)
            $0 $* --token-file ~/.cdf-token"
 ok "token via $TOKEN_SOURCE"
@@ -115,8 +115,9 @@ info "Reading organization $ORG"
 call GET "$AUTH_BASE/api/v1/orgs/$ORG"
 case "$HTTP_STATUS" in
   200) ;;
-  401) die "token rejected by $AUTH_BASE (401). It must be issued for auth.cognite.com — a
-       cluster-scoped token will not work here. Copy one from Fusion (see above)." ;;
+  401) die "token rejected by $AUTH_BASE (401) — expired, or not issued by that server.
+       Organization APIs need a token from your org's authorization server, not a
+       cluster-scoped service-principal token. Copy a fresh one from Fusion." ;;
   403) die "not an admin of organization '$ORG' (403). Project creation requires org admin." ;;
   404) die "organization '$ORG' not found. Use the name from your Fusion URL." ;;
   *)   die "unexpected HTTP $HTTP_STATUS reading the organization" ;;
