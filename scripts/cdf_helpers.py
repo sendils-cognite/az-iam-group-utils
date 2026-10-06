@@ -189,7 +189,22 @@ def error_text():
     return 0
 
 
+def token_issuer():
+    """Print the `iss` claim of a raw JWT read from stdin. Used to find the auth server."""
+    import base64
+
+    raw = sys.stdin.read().strip()
+    try:
+        payload = raw.split(".")[1]
+        payload += "=" * (-len(payload) % 4)
+        print(json.loads(base64.urlsafe_b64decode(payload)).get("iss", ""))
+    except (IndexError, ValueError):
+        print("")
+    return 0
+
+
 COMMANDS = {
+    "token-issuer": token_issuer,
     "show-org": show_org,
     "find-project": find_project,
     "error-text": error_text,

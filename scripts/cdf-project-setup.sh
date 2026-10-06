@@ -3,7 +3,7 @@
 #
 #   cdf-project-setup.sh --org ORG --url-name NAME --cluster CLUSTER
 #                        [--name "Display Name"] [--admin-group-id ID]
-#                        [--root DIR] [--token-file FILE] [--dry-run]
+#                        [--root DIR] [--token-file FILE] [--auth-base URL] [--dry-run]
 #
 # Why this avoids the bootstrapping problem that cdf-group-setup.sh has: a project is
 # created with projectAdminGroupId set to an IdP group. Point that at the Entra group
@@ -20,7 +20,7 @@ MODULE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HELPER="$MODULE_DIR/scripts/cdf_helpers.py"
 AUTH_BASE="https://auth.cognite.com"
 
-ORG="" URL_NAME="" CLUSTER="" DISPLAY_NAME="" ADMIN_GROUP_ID=""
+ORG="" URL_NAME="" CLUSTER="" DISPLAY_NAME="" ADMIN_GROUP_ID="" AUTH_BASE_OVERRIDE=""
 ROOT="" TOKEN_FILE="" DRY_RUN=0
 
 die()  { printf '\033[31merror:\033[0m %s\n' "$1" >&2; exit 1; }
@@ -36,6 +36,7 @@ while [[ $# -gt 0 ]]; do
     --admin-group-id) ADMIN_GROUP_ID="${2:-}"; shift 2 ;;
     --root)           ROOT="${2:-}"; shift 2 ;;
     --token-file)     TOKEN_FILE="${2:-}"; shift 2 ;;
+    --auth-base)      AUTH_BASE_OVERRIDE="${2:-}"; shift 2 ;;
     --dry-run)        DRY_RUN=1; shift ;;
     *) die "unknown argument: $1" ;;
   esac
@@ -79,6 +80,21 @@ resolve_token || die "no usable token for $AUTH_BASE.
            (umask 077; pbpaste > ~/.cdf-token)
            $0 $* --token-file ~/.cdf-token"
 ok "token via $TOKEN_SOURCE"
+
+# Staging and other deployments use their own authorization server, so trust the
+# token's issuer over the production default.
+if [[ -n "$AUTH_BASE_OVERRIDE" ]]; then
+  AUTH_BASE="$AUTH_BASE_OVERRIDE"
+  ok "auth server $AUTH_BASE (from --auth-base)"
+else
+  ISSUER="$(python3 "$HELPER" token-issuer <<<"$TOKEN")"
+  if [[ -n "$ISSUER" && "$ISSUER" != "$AUTH_BASE" ]]; then
+    AUTH_BASE="${ISSUER%/}"
+    ok "auth server $AUTH_BASE (from the token's iss claim)"
+  else
+    ok "auth server $AUTH_BASE"
+  fi
+fi
 
 RESP="" HTTP_STATUS=""
 call() { # method url [body]
