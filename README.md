@@ -45,6 +45,23 @@ ENTRA_GROUP_ID=...
 The variable names match what the Cognite Toolkit expects, so the file drops straight into a
 Toolkit project.
 
+### Creating a new CDF project
+
+If the project does not exist yet, create it with the Entra group as its admin group — then
+there is no CDF group to create afterwards, because members of that group are project admins
+from the start:
+
+```bash
+scripts/cdf-project-setup.sh --org <org> --url-name <project> --cluster <cluster>
+```
+
+`<org>` is the name in your Fusion URL (`https://<org>.fusion.cognite.com/...`). The cluster is
+permanent — a project cannot be moved later.
+
+Organization APIs live on `auth.cognite.com` and need a token for that audience; a cluster-scoped
+service-principal token is not accepted. Copy one from Fusion and pass `--token-file`. You must
+also be an organization admin, with `adminsCanCreateProjectsInSubtree` enabled.
+
 ### Finishing the setup in CDF
 
 The Azure identity is useless until CDF trusts it. Create the matching CDF group:

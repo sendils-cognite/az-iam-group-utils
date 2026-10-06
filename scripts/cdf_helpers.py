@@ -154,7 +154,45 @@ def show_claims():
     return 1
 
 
+def show_org():
+    """Print the organization's settings that matter for project creation."""
+    doc = _load() or {}
+    for key in ("id", "name", "adminGroupId", "adminsCanCreateProjectsInSubtree", "clusters", "allowedClusters"):
+        if key in doc:
+            print(f"  {key}: {doc[key]}")
+    flag = doc.get("adminsCanCreateProjectsInSubtree")
+    if flag is False:
+        print(f"  {RED}x{RESET} adminsCanCreateProjectsInSubtree is false — creation will be refused")
+        return 1
+    unknown = [k for k in doc if k not in {"id", "name", "adminGroupId", "adminsCanCreateProjectsInSubtree", "clusters", "allowedClusters"}]
+    if unknown:
+        print(f"  (other fields: {', '.join(sorted(unknown))})")
+    return 0
+
+
+def find_project(url_name):
+    """Confirm a project is listed in the organization."""
+    doc = _load() or {}
+    items = doc.get("items", doc if isinstance(doc, list) else [])
+    for p in items:
+        if p.get("urlName") == url_name or p.get("name") == url_name:
+            print(f"  {GREEN}v{RESET} '{url_name}' is listed (cluster {p.get('cluster', '?')})")
+            return 0
+    listed = [p.get("urlName") or p.get("name") for p in items]
+    print(f"  {RED}x{RESET} '{url_name}' not listed. Projects: {listed or 'none'}")
+    return 1
+
+
+def error_text():
+    """Print just the error message from a failed response."""
+    print(error_message(_load()))
+    return 0
+
+
 COMMANDS = {
+    "show-org": show_org,
+    "find-project": find_project,
+    "error-text": error_text,
     "show-claims": show_claims,
     "show-access": show_access,
     "list-groups": list_groups,
