@@ -125,10 +125,12 @@ esac
 python3 "$HELPER" show-org <<<"$RESP"
 
 # --- create ------------------------------------------------------------------
+# Verified against the live API: an items envelope, `name` is the URL name (there is no
+# separate urlName), and the cluster field is `clusterName`.
 BODY="$(python3 -c '
 import json, sys
 name, url_name, cluster, admin_group = sys.argv[1:5]
-print(json.dumps({"name": name, "urlName": url_name, "cluster": cluster, "projectAdminGroupId": admin_group}))
+print(json.dumps({"items": [{"name": url_name, "clusterName": cluster, "projectAdminGroupId": admin_group}]}))
 ' "$DISPLAY_NAME" "$URL_NAME" "$CLUSTER" "$ADMIN_GROUP_ID")"
 
 if [[ "$DRY_RUN" -eq 1 ]]; then
