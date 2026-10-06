@@ -93,7 +93,45 @@ def show_group(group_id, source_id):
     return 0 if linked else 1
 
 
+def show_access(project):
+    """Report what a token can actually reach. Exit 1 if it cannot use `project`."""
+    doc = _load()
+    if doc is None:
+        print(f"  {RED}x{RESET} {error_message(doc)}")
+        return 1
+    print(f"  subject {doc.get('subject', '?')}")
+    reachable = [p["projectUrlName"] for p in doc.get("projects", [])]
+    if project not in reachable:
+        print(f"  {RED}x{RESET} no access to '{project}' (reachable: {reachable or 'none'})")
+        print("     No CDF group matches this principal's Entra groups.")
+        return 1
+    groups = next(p["groups"] for p in doc["projects"] if p["projectUrlName"] == project)
+    print(f"  {GREEN}v{RESET} access to '{project}' via CDF group ids {groups}")
+    caps = [(k, v.get("actions", [])) for c in doc.get("capabilities", []) for k, v in c.items() if k.endswith("Acl")]
+    if not caps:
+        print(f"  {RED}x{RESET} token carries no capabilities")
+        return 1
+    print(f"  {GREEN}v{RESET} capabilities:")
+    for name, actions in sorted(caps):
+        print(f"      {name}: {', '.join(actions)}")
+    return 0
+
+
+def list_groups():
+    """Print every CDF group with its sourceId, to spot broken links."""
+    doc = _load() or {}
+    items = doc.get("items", [])
+    if not items:
+        print("  (no groups, or no permission to list them)")
+        return 0
+    for g in items:
+        print(f"  id={g['id']:<12} name={g.get('name','?'):<30} sourceId={g.get('sourceId') or '(none)'}")
+    return 0
+
+
 COMMANDS = {
+    "show-access": show_access,
+    "list-groups": list_groups,
     "check-access": check_access,
     "find-group": find_group,
     "build-body": build_body,
