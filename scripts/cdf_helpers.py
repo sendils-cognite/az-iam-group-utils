@@ -129,7 +129,33 @@ def list_groups():
     return 0
 
 
+def show_claims():
+    """Decode the token's claims. Prints no secret — only claim names and group ids."""
+    doc = _load() or {}
+    token = doc.get("access_token", "")
+    if not token:
+        print(f"  {RED}x{RESET} no access_token in response: {error_message(doc)}")
+        return 1
+    import base64
+
+    payload = token.split(".")[1]
+    payload += "=" * (-len(payload) % 4)
+    claims = json.loads(base64.urlsafe_b64decode(payload))
+    print(f"  audience : {claims.get('aud')}")
+    print(f"  object id: {claims.get('oid')}")
+    print(f"  claims   : {', '.join(sorted(claims))}")
+    groups = claims.get("groups")
+    if groups:
+        print(f"  {GREEN}v{RESET} groups claim present: {groups}")
+        return 0
+    print(f"  {RED}x{RESET} NO groups claim — CDF cannot map this token to any group.")
+    print("     Causes: groupMembershipClaims not set on the app registration, the service")
+    print("     principal is not in any security group, or the token predates the change.")
+    return 1
+
+
 COMMANDS = {
+    "show-claims": show_claims,
     "show-access": show_access,
     "list-groups": list_groups,
     "check-access": check_access,

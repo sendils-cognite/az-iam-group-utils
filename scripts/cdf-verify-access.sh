@@ -14,10 +14,11 @@
 
 set -uo pipefail
 
-ROOT=""
+ROOT="" SHOW_CLAIMS=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --root) ROOT="${2:-}"; shift 2 ;;
+    --claims) SHOW_CLAIMS=1; shift ;;
     *) printf '\033[31merror:\033[0m unknown argument: %s\n' "$1" >&2; exit 1 ;;
   esac
 done
@@ -56,6 +57,13 @@ if [[ -z "$TOKEN" ]]; then
   esac
 fi
 ok "Entra ID issued a token for $IDP_SCOPES"
+
+if [[ "$SHOW_CLAIMS" -eq 1 ]]; then
+  echo
+  echo "Token claims:"
+  python3 "$(dirname "${BASH_SOURCE[0]}")/cdf_helpers.py" show-claims <<<"$RESP"
+  echo
+fi
 
 # --- 2. does CDF grant it anything? ------------------------------------------
 OUT="$(curl -sS -w '\n%{http_code}' -H "Authorization: Bearer $TOKEN" "$CDF_URL/api/v1/token/inspect")" \

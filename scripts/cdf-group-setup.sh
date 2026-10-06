@@ -99,6 +99,25 @@ elif [[ -n "${CDF_ADMIN_CLIENT_ID:-}" && -n "${CDF_ADMIN_CLIENT_SECRET:-}" ]]; t
   TOKEN_SOURCE="admin service principal $CDF_ADMIN_CLIENT_ID"
 
 else
+  # Last resort before the az session: the principal in .env itself. Circular on a first
+  # run (it has no access yet), but once any CDF group grants it groupsAcl it can manage
+  # further groups without a browser.
+  SELF_ID="$(get IDP_CLIENT_ID)"
+  SELF_SECRET="$(get IDP_CLIENT_SECRET)"
+  SELF_URL="$(get IDP_TOKEN_URL)"
+  SELF_SCOPES="$(get IDP_SCOPES)"
+  if [[ -n "$SELF_ID" && -n "$SELF_SECRET" && -n "$SELF_URL" ]]; then
+    TOKEN="$(curl -sS -X POST "$SELF_URL" \
+      -d grant_type=client_credentials -d "client_id=$SELF_ID" \
+      -d "client_secret=$SELF_SECRET" -d "scope=$SELF_SCOPES" \
+      | python3 -c 'import sys,json;print(json.load(sys.stdin).get("access_token",""))' 2>/dev/null)"
+    if [[ -n "$TOKEN" ]]; then
+      TOKEN_SOURCE="the service principal in .env ($SELF_ID)"
+    fi
+  fi
+fi
+
+if [[ -z "$TOKEN" ]]; then
   az account show >/dev/null 2>&1 || die "not signed in — run: az login --allow-no-subscriptions"
   TOKEN_ERR="$(az account get-access-token --scope "$BASE/.default" --query accessToken -o tsv 2>&1 >/dev/null)"
   TOKEN="$(az account get-access-token --scope "$BASE/.default" --query accessToken -o tsv 2>/dev/null)"
