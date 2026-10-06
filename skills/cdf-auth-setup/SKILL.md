@@ -105,9 +105,15 @@ Two failures to expect and how to respond:
   cluster. The script prints the exact `az login --scope …` command; relay it verbatim and have
   the user run it, then re-run. Do not run `az login` for them; it needs a browser.
 - **`AADSTS650057`** — the CDF application in that tenant does not list the Azure CLI as a
-  permitted client. Consent cannot fix this; stop suggesting `az login`. Offer instead
-  `CDF_TOKEN=<token>` (from Fusion DevTools) or
-  `CDF_ADMIN_CLIENT_ID`/`CDF_ADMIN_CLIENT_SECRET` for an existing admin service principal.
+  permitted client. Consent cannot fix this; stop suggesting `az login`. Offer instead a token
+  from Fusion DevTools, or `CDF_ADMIN_CLIENT_ID`/`CDF_ADMIN_CLIENT_SECRET` for an existing admin
+  service principal.
+
+  For a token, use `--token-file`, not an inline environment variable. Tell the user to copy the
+  token in the browser and run `(umask 077; pbpaste > ~/.cdf-token)`, then pass
+  `--token-file ~/.cdf-token`. Never construct a command containing the token, and never ask the
+  user to paste a secret into chat. Do not use interactive `read` prompts in commands you run
+  yourself — the script gets no keyboard input and blocks silently.
 - **no `groupsAcl:CREATE`** — the user is not a CDF admin there. They need an admin to run the
   script or grant the capability. Do not try to work around it.
 
