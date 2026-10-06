@@ -290,6 +290,7 @@ this tool themselves.
 | `.env already exists and is not managed by this tool` | You already have an `.env` there. Back it up, then re-run with `--force`. |
 | `Repository not found` on `git clone` | The repo is private and you lack access, or `gh` is signed in as the wrong account. Check with `gh auth status`. |
 | 404 on CDF API calls after setup | `CDF_PROJECT` is wrong, or you skipped Step 7. |
+| `Valid authentication token, but it does not give any access rights` | The token carries no `groups` claim, so CDF sees a principal in no groups. The app registration needs `groupMembershipClaims` — this tool sets it, but an app created before that fix needs `terraform apply` to update it. A token minted before the change still lacks the claim; request a new one. |
 
 ---
 

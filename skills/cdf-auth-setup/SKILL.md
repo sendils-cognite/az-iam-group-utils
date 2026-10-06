@@ -135,6 +135,25 @@ Microsoft Graph. Relay:
 If verification reports failures, read them out and fix the cause; do not describe a partial setup
 as complete.
 
+## When CDF says the token has no access rights
+
+`Valid authentication token, but it does not give any access rights` (Toolkit) or a CDF 401 with a
+token that Entra issued happily means the token carries no `groups` claim. CDF resolves access from
+that claim, so a principal with no claim belongs to no groups.
+
+The module sets `group_membership_claims = ["SecurityGroup"]` on the application. An app created
+before that was added needs `terraform -chdir=.cdf-auth apply` to pick it up — an in-place update
+that does not rotate the secret. Tokens minted before the change still lack the claim, so request a
+fresh one afterwards.
+
+Check the live state with:
+
+```bash
+az ad app show --id <client-id> --query groupMembershipClaims -o tsv
+```
+
+`SecurityGroup` is correct; `null` is the bug.
+
 ## Secret handling
 
 Never print the client secret, never `cat` the `.env`, and never paste the secret into a command

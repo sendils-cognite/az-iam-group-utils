@@ -25,6 +25,10 @@ resource "azuread_application" "cdf" {
   sign_in_audience = "AzureADMyOrg"
   owners           = [data.azuread_client_config.current.object_id]
 
+  // Without this the access token carries no `groups` claim, so CDF sees a valid
+  // token that belongs to no groups and grants it nothing.
+  group_membership_claims = ["SecurityGroup"]
+
   prevent_duplicate_names = true
 }
 
