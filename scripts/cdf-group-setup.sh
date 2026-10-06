@@ -111,14 +111,17 @@ else
        $HINT
 
        Option A — borrow a token from Fusion (expires in about an hour):
-         Sign in at https://$CLUSTER.fusion.cognite.com/$PROJECT, open the browser
-         DevTools Network tab, pick any request to $CLUSTER.cognitedata.com and copy
-         the value after 'Bearer ' in its Authorization header. Then:
-           CDF_TOKEN=<token> $0 $*
+         Sign in at https://$CLUSTER.fusion.cognite.com/$PROJECT, open DevTools,
+         Network tab, pick any request to $CLUSTER.cognitedata.com and copy the
+         value after 'Bearer ' in its Authorization header. Then paste this line
+         as-is — it prompts for the token, so it stays out of your shell history:
+
+           printf 'CDF token: '; read -rs CDF_TOKEN; echo; export CDF_TOKEN; $0 $*
 
        Option B — use an existing admin service principal that already has
-       groupsAcl:CREATE in '$PROJECT':
-           CDF_ADMIN_CLIENT_ID=<id> CDF_ADMIN_CLIENT_SECRET=<secret> $0 $*
+       groupsAcl:CREATE in '$PROJECT'. Paste as-is:
+
+           printf 'client id: '; read -r CDF_ADMIN_CLIENT_ID; printf 'secret: '; read -rs CDF_ADMIN_CLIENT_SECRET; echo; export CDF_ADMIN_CLIENT_ID CDF_ADMIN_CLIENT_SECRET; $0 $*
 
        Option C — create the group by hand in Fusion:
          Admin -> Access management -> Groups -> Create group,

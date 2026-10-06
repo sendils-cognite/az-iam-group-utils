@@ -206,12 +206,18 @@ Option 3 is the most convenient but does not work in every tenant. If `az` fails
 command. If it fails with **`AADSTS650057`**, the CDF application in your tenant does not permit
 the Azure CLI as a client at all — consent cannot fix that, so use option 1 or 2:
 
+Paste either line **as-is** — they prompt for the value, so nothing secret ends up in your
+shell history. (Do not type the angle-bracket placeholders: your shell reads `<` as a file
+redirect and fails with `no such file or directory`.)
+
 ```bash
 # Option 1 — token from Fusion DevTools (Network tab, any request's Authorization header)
-CDF_TOKEN=<token> ~/az-iam-group-utils/scripts/cdf-group-setup.sh
+printf 'CDF token: '; read -rs CDF_TOKEN; echo; export CDF_TOKEN; ~/az-iam-group-utils/scripts/cdf-group-setup.sh
+```
 
+```bash
 # Option 2 — an existing admin service principal
-CDF_ADMIN_CLIENT_ID=<id> CDF_ADMIN_CLIENT_SECRET=<secret> ~/az-iam-group-utils/scripts/cdf-group-setup.sh
+printf 'client id: '; read -r CDF_ADMIN_CLIENT_ID; printf 'secret: '; read -rs CDF_ADMIN_CLIENT_SECRET; echo; export CDF_ADMIN_CLIENT_ID CDF_ADMIN_CLIENT_SECRET; ~/az-iam-group-utils/scripts/cdf-group-setup.sh
 ```
 
 Either way the credential needs `groupsAcl:CREATE` in the project; the script checks before
