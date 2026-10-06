@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Creates the CDF-side group that gives the service principal access to a CDF project.
 #
-#   cdf-group-setup.sh [--root <dir>] [--group-name <name>] [--capabilities <file>] [--dry-run]
+#   cdf-group-setup.sh [--root DIR] [--group-name NAME] [--capabilities FILE]
+#                      [--token-file FILE] [--dry-run]
 #
 # Run this after cdf-auth-setup.sh. It reads CDF_CLUSTER, CDF_PROJECT and ENTRA_GROUP_ID from
 # the project's .env, and never reads the client secret.
@@ -15,6 +16,7 @@ set -uo pipefail
 MODULE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HELPER="$MODULE_DIR/scripts/cdf_helpers.py"
 ROOT="" GROUP_NAME="" CAPS_FILE="$MODULE_DIR/cdf-capabilities.json" DRY_RUN=0
+TOKEN_FILE=""
 
 die()  { printf '\033[31merror:\033[0m %s\n' "$1" >&2; exit 1; }
 ok()   { printf '  \033[32m✓\033[0m %s\n' "$1"; }
@@ -25,6 +27,7 @@ while [[ $# -gt 0 ]]; do
     --root)         ROOT="${2:-}"; shift 2 ;;
     --group-name)   GROUP_NAME="${2:-}"; shift 2 ;;
     --capabilities) CAPS_FILE="${2:-}"; shift 2 ;;
+    --token-file)   TOKEN_FILE="${2:-}"; shift 2 ;;
     --dry-run)      DRY_RUN=1; shift ;;
     *) die "unknown argument: $1" ;;
   esac
@@ -72,7 +75,14 @@ info "Authenticating"
 TOKEN=""
 TOKEN_SOURCE=""
 
-if [[ -n "${CDF_TOKEN:-}" ]]; then
+if [[ -n "$TOKEN_FILE" ]]; then
+  [[ -f "$TOKEN_FILE" ]] || die "token file not found: $TOKEN_FILE"
+  # tr strips any trailing newline a copy-paste or editor added.
+  TOKEN="$(tr -d '[:space:]' < "$TOKEN_FILE")"
+  [[ -n "$TOKEN" ]] || die "token file is empty: $TOKEN_FILE"
+  TOKEN_SOURCE="token file $TOKEN_FILE"
+
+elif [[ -n "${CDF_TOKEN:-}" ]]; then
   TOKEN="$CDF_TOKEN"
   TOKEN_SOURCE="CDF_TOKEN environment variable"
 
@@ -113,10 +123,11 @@ else
        Option A — borrow a token from Fusion (expires in about an hour):
          Sign in at https://$CLUSTER.fusion.cognite.com/$PROJECT, open DevTools,
          Network tab, pick any request to $CLUSTER.cognitedata.com and copy the
-         value after 'Bearer ' in its Authorization header. Then paste this line
-         as-is — it prompts for the token, so it stays out of your shell history:
+         value after 'Bearer ' in its Authorization header. With it on your
+         clipboard, run these two lines (nothing secret touches your history):
 
-           printf 'CDF token: '; read -rs CDF_TOKEN; echo; export CDF_TOKEN; $0 $*
+           (umask 077; pbpaste > ~/.cdf-token)
+           $0 $* --token-file ~/.cdf-token
 
        Option B — use an existing admin service principal that already has
        groupsAcl:CREATE in '$PROJECT'. Paste as-is:

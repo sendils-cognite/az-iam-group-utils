@@ -206,14 +206,21 @@ Option 3 is the most convenient but does not work in every tenant. If `az` fails
 command. If it fails with **`AADSTS650057`**, the CDF application in your tenant does not permit
 the Azure CLI as a client at all — consent cannot fix that, so use option 1 or 2:
 
-Paste either line **as-is** — they prompt for the value, so nothing secret ends up in your
-shell history. (Do not type the angle-bracket placeholders: your shell reads `<` as a file
-redirect and fails with `no such file or directory`.)
+Do not type the angle-bracket placeholders shown in examples elsewhere — your shell reads `<`
+as a file redirect and fails with `no such file or directory`.
+
+Option 1 is easiest on macOS. Copy the token in the browser, then run two lines — nothing
+secret is typed, and nothing lands in your shell history:
 
 ```bash
-# Option 1 — token from Fusion DevTools (Network tab, any request's Authorization header)
-printf 'CDF token: '; read -rs CDF_TOKEN; echo; export CDF_TOKEN; ~/az-iam-group-utils/scripts/cdf-group-setup.sh
+(umask 077; pbpaste > ~/.cdf-token)
 ```
+
+```bash
+~/az-iam-group-utils/scripts/cdf-group-setup.sh --token-file ~/.cdf-token
+```
+
+Delete it when you're done: `rm ~/.cdf-token`
 
 ```bash
 # Option 2 — an existing admin service principal
