@@ -172,6 +172,9 @@ Or run the script directly, substituting your four values:
 - `--prefix` names the objects `<prefix>-admin` and `<prefix>-app`. It defaults to `cdf`, but in a
   shared tenant pick something specific to you — the run fails if those names already exist.
 - Add `--plan-only` first if you want to see what would be created without creating it.
+- You are added to the security group by default, alongside the service principal — a
+  service principal cannot sign in to Fusion, so without this you would have no access to
+  the project you just set up. Pass `--no-self` to opt out (for unattended runs).
 
 The script creates the Entra objects, writes the `.env`, and verifies the result. Expect
 `20 passed, 0 failed`.
