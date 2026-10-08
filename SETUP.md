@@ -150,7 +150,16 @@ Go to the project that needs the credentials — the `.env` is written at *its* 
 cd ~/path/to/my-project
 ```
 
-Then run the script, substituting your four values:
+The easiest route is the wizard, which asks for each value in turn:
+
+```bash
+~/az-iam-group-utils/scripts/cdf-setup.sh
+```
+
+It validates each answer as you type it, re-asking rather than failing, and shows a review screen
+before anything is created. Everything below is the equivalent with flags.
+
+Or run the script directly, substituting your four values:
 
 ```bash
 ~/az-iam-group-utils/scripts/cdf-auth-setup.sh \

@@ -54,6 +54,13 @@ created successfully and only break later, at token or API time.
 
 ## Step 3 — run it
 
+**Do not run `scripts/cdf-setup.sh` yourself.** It is the interactive wizard for a human at a
+keyboard; a `read` prompt gets no input when you run it, and it blocks silently. Suggest it to the
+user when they would rather answer prompts than have you gather the values, then let them run it
+in their own terminal.
+
+For your own runs use the flag form below.
+
 ```bash
 scripts/cdf-auth-setup.sh --tenant <guid> --cluster <cluster> --cdf-project <name> [--prefix <p>]
 ```

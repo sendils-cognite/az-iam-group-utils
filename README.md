@@ -22,6 +22,19 @@ starting from an empty machine. Need a tenant of your own first? See [NEW_TENANT
 
 ## Usage
 
+The simplest way is the interactive wizard — it asks for everything it needs, so there are no
+commands to edit and no placeholders to substitute:
+
+```bash
+./scripts/cdf-setup.sh
+```
+
+It checks your tools and Azure session, asks where the `.env` should go, offers to create the CDF
+project if you do not have one, shows a review screen, and does nothing until you confirm. The
+individual scripts below remain available with flags for scripted or repeat runs.
+
+## Usage with flags
+
 ```bash
 cp terraform.tfvars.example terraform.tfvars   # fill in tenant_id, cdf_cluster, cdf_project
 terraform init
