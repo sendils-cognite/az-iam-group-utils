@@ -42,3 +42,9 @@ variable "env_file_path" {
   type        = string
   default     = ""
 }
+
+variable "add_current_user_to_group" {
+  description = "Add the signed-in user to the security group, so they get the same CDF access as the service principal."
+  type        = bool
+  default     = true
+}

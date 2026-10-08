@@ -12,6 +12,7 @@ set -uo pipefail
 MODULE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 TENANT="" CLUSTER="" CDF_PROJECT="" PREFIX="cdf" ROOT="" DAYS="180"
+ADD_SELF=true
 FORCE=0 PLAN_ONLY=0
 
 die() { printf '\033[31merror:\033[0m %s\n' "$1" >&2; exit 1; }
@@ -25,6 +26,7 @@ while [[ $# -gt 0 ]]; do
     --prefix)      PREFIX="${2:-}"; shift 2 ;;
     --root)        ROOT="${2:-}"; shift 2 ;;
     --days)        DAYS="${2:-}"; shift 2 ;;
+    --no-self)     ADD_SELF=false; shift ;;
     --force)       FORCE=1; shift ;;
     --plan-only)   PLAN_ONLY=1; shift ;;
     *) die "unknown argument: $1" ;;
@@ -86,6 +88,9 @@ cdf_cluster          = "$CLUSTER"
 cdf_project          = "$CDF_PROJECT"
 secret_validity_days = $DAYS
 env_file_path        = "$ENV_FILE"
+
+# Adds you to the group too, so you can open the project in a browser.
+add_current_user_to_group = $ADD_SELF
 EOF
 
 # Keep credentials and state out of the user's git history.

@@ -161,9 +161,15 @@ printf '  prefix      %s  ->  %s-admin, %s-app\n' "$PREFIX" "$PREFIX" "$PREFIX"
 printf '  .env        %s/.env\n' "$ROOT"
 confirm "Proceed?" || { printf 'Stopped. Nothing was created.\n'; exit 0; }
 
+title "Your own access"
+note "The service principal cannot sign in to Fusion. Adding you to the group gives you the"
+note "same CDF access, so you can open the project in a browser."
+SELF_FLAG=()
+confirm "Add you to $PREFIX-admin as well?" || SELF_FLAG=(--no-self)
+
 title "Step 1 — Entra ID identity"
 "$SCRIPTS/cdf-auth-setup.sh" --tenant "$TENANT" --cluster "$CLUSTER" \
-  --cdf-project "$CDF_PROJECT" --prefix "$PREFIX" --root "$ROOT" \
+  --cdf-project "$CDF_PROJECT" --prefix "$PREFIX" --root "$ROOT" "${SELF_FLAG[@]}" \
   || die "could not create the Entra ID objects"
 
 GROUP_ID="$(grep -E '^ENTRA_GROUP_ID=' "$ROOT/.env" | cut -d= -f2-)"
@@ -178,14 +184,6 @@ if [[ "$CREATE_PROJECT" -eq 1 ]]; then
   until read_token_to_file "$TOKEN_PATH"; do
     confirm "Try again?" || die "a token is needed to create a project"
   done
-
-  if confirm "Add yourself to $PREFIX-admin, so you can open the project in a browser too?"; then
-    ME="$(az ad signed-in-user show --query id -o tsv 2>/dev/null)"
-    if [[ -n "$ME" ]]; then
-      az ad group member add --group "$GROUP_ID" --member-id "$ME" >/dev/null 2>&1 \
-        && ok "added you to the group" || warn "could not add you (you may already be a member)"
-    fi
-  fi
 
   "$SCRIPTS/cdf-project-setup.sh" --org "$ORG" --url-name "$CDF_PROJECT" --cluster "$CLUSTER" \
     --root "$ROOT" --token-file "$TOKEN_PATH" \

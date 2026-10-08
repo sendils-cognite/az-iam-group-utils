@@ -43,6 +43,14 @@ resource "azuread_group_member" "sp" {
   member_object_id = azuread_service_principal.cdf.object_id
 }
 
+// The service principal alone cannot sign in to Fusion. Without this the person who
+// ran the tool has no access to the project they just set up.
+resource "azuread_group_member" "self" {
+  count            = var.add_current_user_to_group ? 1 : 0
+  group_object_id  = azuread_group.cdf.object_id
+  member_object_id = data.azuread_client_config.current.object_id
+}
+
 // Recorded once at create time so the expiry does not drift on every plan.
 resource "time_offset" "secret_expiry" {
   offset_days = var.secret_validity_days
